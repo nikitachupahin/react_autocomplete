@@ -3,13 +3,13 @@ import { Person } from '../../types/Person';
 
 interface Props {
   people: Person[];
-  onSelect: (person: Person | null) => void;
+  onSelected: (person: Person | null) => void;
   delay?: number;
 }
 
 export const Autocomplete: React.FC<Props> = ({
   people,
-  onSelect,
+  onSelected,
   delay = 300,
 }) => {
   const [inputValue, setInputValue] = useState('');
@@ -19,26 +19,27 @@ export const Autocomplete: React.FC<Props> = ({
   const debounceRef = useRef<number>();
 
   useEffect(() => {
-    if (inputValue.trim() === prevSearch.trim()) {
+    const query = inputValue.trim();
+
+    if (query === prevSearch.trim()) {
       return;
     }
 
     window.clearTimeout(debounceRef.current);
 
     debounceRef.current = window.setTimeout(() => {
-      setPrevSearch(inputValue);
+      setPrevSearch(query);
 
-      if (!inputValue.trim()) {
-        setSuggestions(people);
-      } else {
-        const lower = inputValue.toLowerCase();
-        const filtered = people.filter(p =>
-          p.name.toLowerCase().includes(lower),
-        );
+      if (query === '') {
+        setSuggestions([]);
 
-        setSuggestions(filtered);
+        return;
       }
 
+      const lower = query.toLowerCase();
+      const filtered = people.filter(p => p.name.toLowerCase().includes(lower));
+
+      setSuggestions(filtered);
       setIsOpen(true);
     }, delay);
 
@@ -49,13 +50,13 @@ export const Autocomplete: React.FC<Props> = ({
 
   const handleSelect = (person: Person) => {
     setInputValue(person.name);
-    onSelect(person);
+    onSelected(person);
     setIsOpen(false);
   };
 
   const handleChange = (value: string) => {
     setInputValue(value);
-    onSelect(null);
+    onSelected(null);
   };
 
   return (
